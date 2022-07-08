@@ -81,16 +81,20 @@ public class Demo06 {
 
         //将通道注册到选择器，并设定为接收操作
         //第一个参数是绑定的选择器，第二个是监听事件类型：read、accept、write、connect
+        //
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
+        //selector.select() 会返回监听的事件个数
         while(selector.select()>0){
             Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
             while(iterator.hasNext()){
                 SelectionKey key = iterator.next();
                 //如果处于accept状态，就将通道注册到选择器并设置为读操作
                 if(key.isAcceptable()){
+                    //建立连接
                     SocketChannel socketChannel = serverSocketChannel.accept();
                     socketChannel.configureBlocking(false);
+                    //让socketChannel监听可读事件
                     socketChannel.register(selector,SelectionKey.OP_READ);
                 //如果处于读操作，就开始读取数据。
                 }else if(key.isReadable()){
@@ -104,6 +108,7 @@ public class Demo06 {
                     }
                     socketChannel.close();
                 }
+                //处理完key之后，要将他从selectKeys集合移出，，否则下次处理还会遍历到这个key，但是已经没有事件要处理
                 iterator.remove();
             }
         }
